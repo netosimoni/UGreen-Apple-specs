@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <!-- iOS PWA: viewport-fit=cover é obrigatório para safe areas -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, user-scalable=no">
+
+  <!-- iOS PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Audio Modes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+  <meta name="description" content="Audio Mode Switcher — Alterne rapidamente entre perfis de áudio no iPhone">
+  <meta name="format-detection" content="telephone=no">
+
+  <!-- Manifest & Icons -->
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png">
+
+  <!-- Apple Splash Screens (iPhone) -->
+  <link rel="apple-touch-startup-image" href="./assets/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)">
+  <link rel="apple-touch-startup-image" href="./assets/splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)">
+  <link rel="apple-touch-startup-image" href="./assets/splash-1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)">
+  <link rel="apple-touch-startup-image" href="./assets/splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)">
+
+  <title>Audio Modes</title>
+
+  <style>
+    /* ==========================================================================
+       CSS CUSTOM PROPERTIES
+       iOS-native color system with proper dark/light mode
+       ========================================================================== */
+    :root {
+      /* iOS System Colors — Dark Mode (default for this app) */
+      --system-bg: #000000;
+      --system-bg-secondary: #1c1c1e;
+      --system-bg-tertiary: #2c2c2e;
+      --system-bg-grouped: #1c1c1e;
+      --system-bg-grouped-secondary: #2c2c2e;
+      --system-fill: rgba(120, 120, 128, 0.36);
+      --system-fill-secondary: rgba(120, 120, 128, 0.32);
+      --system-fill-tertiary: rgba(118, 118, 128, 0.24);
+      --system-fill-quaternary: rgba(116, 116, 128, 0.18);
+      --label-primary: #ffffff;
+      --label-secondary: rgba(235, 235, 245, 0.6);
+      --label-tertiary: rgba(235, 235, 245, 0.3);
+      --label-quaternary: rgba(235, 235, 245, 0.18);
+      --separator: rgba(84, 84, 88, 0.65);
+      --separator-opaque: #38383a;
+
+      /* iOS Accent Colors */
+      --ios-blue: #0a84ff;
+      --ios-green: #30d158;
+      --ios-indigo: #5e5ce6;
+      --ios-orange: #ff9f0a;
+      --ios-teal: #64d2ff;
+      --ios-gray: #8e8e93;
+
+      /* App-specific */
+      --ugreen-primary: #30d158;
+      --ugreen-glow: rgba(48, 209, 88, 0.35);
+      --ugreen-surface: rgba(48, 209, 88, 0.08);
+      --airpods-primary: #0a84ff;
+      --airpods-glow: rgba(10, 132, 255, 0.35);
+      --airpods-surface: rgba(10, 132, 255, 0.08);
+
+      /* Glass effect */
+      --glass-bg: rgba(44, 44, 46, 0.72);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-highlight: rgba(255, 255, 255, 0.05);
+
+      /* Layout */
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+
+      /* Radii */
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 22px;
+      --radius-card: 24px;
+      --radius-modal: 38px;
+
+      /* Animation */
+      --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+      --duration-fast: 200ms;
+      --duration-normal: 350ms;
+      --duration-slow: 500ms;
+
+      /* Typography */
+      --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
+              'Helvetica Neue', 'Segoe UI', system-ui, sans-serif;
+      --font-rounded: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+
+      color-scheme: dark light;
+    }
+
+    /* Light Mode */
+    @media (prefers-color-scheme: light) {
+      :root {
+        --system-bg: #f2f2f7;
+        --system-bg-secondary: #ffffff;
+        --system-bg-tertiary: #f2f2f7;
+        --system-bg-grouped: #f2f2f7;
+        --system-bg-grouped-secondary: #ffffff;
+        --system-fill: rgba(120, 120, 128, 0.2);
+        --system-fill-secondary: rgba(120, 120, 128, 0.16);
+        --system-fill-tertiary: rgba(118, 118, 128, 0.12);
+        --system-fill-quaternary: rgba(116, 116, 128, 0.08);
+        --label-primary: #000000;
+        --label-secondary: rgba(60, 60, 67, 0.6);
+        --label-tertiary: rgba(60, 60, 67, 0.3);
+        --label-quaternary: rgba(60, 60, 67, 0.18);
+        --separator: rgba(60, 60, 67, 0.29);
+        --separator-opaque: #c6c6c8;
+
+        --ios-blue: #007aff;
+        --ios-green: #34c759;
+
+        --ugreen-primary: #34c759;
+        --ugreen-glow: rgba(52, 199, 89, 0.25);
+        --ugreen-surface: rgba(52, 199, 89, 0.1);
+        --airpods-primary: #007aff;
+        --airpods-glow: rgba(0, 122, 255, 0.25);
+        --airpods-surface: rgba(0, 122, 255, 0.1);
+
+        --glass-bg: rgba(255, 255, 255, 0.72);
+        --glass-border: rgba(0, 0, 0, 0.06);
+        --glass-highlight: rgba(255, 255, 255, 0.6);
+      }
+    }
+
+    /* ==========================================================================
+       RESET & BASE
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      height: 100%;
+      overflow: hidden;
+      background: var(--system-bg);
+      /* Prevent rubber-band overscroll on iOS */
+      overscroll-behavior: none;
+    }
+
+    body {
+      font-family: var(--font);
+      font-size: 17px;
+      line-height: 1.47;
+      color: var(--label-primary);
+      background: var(--system-bg);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      overscroll-behavior: none;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      -webkit-text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      /* Safe area padding */
+      padding-top: var(--safe-top);
+      padding-left: var(--safe-left);
+      padding-right: var(--safe-right);
+    }
+
+    /* ==========================================================================
+       BACKGROUND MESH (subtle ambient glow)
+       ========================================================================== */
+    .bg-mesh {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      max-width: 100vw;
+      max-height: 100vh;
+    }
+
+    .bg-mesh::before,
+    .bg-mesh::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.25;
+      transition: opacity 0.8s ease, transform 1s ease;
+    }
+
+    .bg-mesh::before {
+      width: 260px;
+      height: 260px;
+      top: -60px;
+      right: -40px;
+      background: var(--ugreen-primary);
+      opacity: 0.12;
+    }
+
+    .bg-mesh::after {
+      width: 220px;
+      height: 220px;
+      bottom: 80px;
+      left: -30px;
+      background: var(--airpods-primary);
+      opacity: 0.08;
+    }
+
+    .bg-mesh.mode-ugreen::before { opacity: 0.25; transform: scale(1.3); }
+    .bg-mesh.mode-ugreen::after { opacity: 0.04; }
+    .bg-mesh.mode-airpods::after { opacity: 0.2; transform: scale(1.3); }
+    .bg-mesh.mode-airpods::before { opacity: 0.04; }
+
+    @media (prefers-color-scheme: light) {
+      .bg-mesh::before { opacity: 0.06; }
+      .bg-mesh::after { opacity: 0.04; }
+      .bg-mesh.mode-ugreen::before { opacity: 0.12; }
+      .bg-mesh.mode-airpods::after { opacity: 0.1; }
+    }
+
+    /* ==========================================================================
+       APP SHELL
+       ========================================================================== */
+    .app {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      max-width: 500px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* ==========================================================================
+       HEADER
+       ========================================================================== */
+    .header {
+      padding: 16px 0 4px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .header__title {
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: 0.37px;
+      line-height: 1.08;
+      background: linear-gradient(
+        180deg,
+        var(--label-primary) 0%,
+        var(--label-secondary) 100%
+      );
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header__subtitle {
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--label-secondary);
+      margin-top: 2px;
+      letter-spacing: -0.24px;
+    }
+
+    /* ==========================================================================
+       STATUS PILL (active mode indicator)
+       ========================================================================== */
+    .status-pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 14px auto 0;
+      padding: 7px 16px;
+      border-radius: 100px;
+      background: var(--glass-bg);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      backdrop-filter: blur(20px) saturate(180%);
+      border: 0.5px solid var(--glass-border);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--label-secondary);
+      letter-spacing: -0.08px;
+      opacity: 0;
+      transform: translateY(-8px) scale(0.95);
+      transition: opacity var(--duration-normal) var(--ease-spring),
+                  transform var(--duration-normal) var(--ease-spring);
+      flex-shrink: 0;
+    }
+
+    .status-pill.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .status-pill__dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--ios-green);
+      box-shadow: 0 0 8px var(--ugreen-glow);
+      animation: dot-breathe 2.5s ease-in-out infinite;
+    }
+
+    .status-pill__dot--airpods {
+      background: var(--ios-blue);
+      box-shadow: 0 0 8px var(--airpods-glow);
+    }
+
+    @keyframes dot-breathe {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .status-pill__label {
+      font-weight: 600;
+      color: var(--label-primary);
+    }
+
+    /* ==========================================================================
+       MAIN — MODE CARDS
+       ========================================================================== */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 14px;
+      padding: 20px 0;
+    }
+
+    /* ==========================================================================
+       MODE CARD
+       Glass card with gradient accent and subtle glow
+       ========================================================================== */
+    .mode-card {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 22px 20px;
+      border-radius: var(--radius-card);
+      border: 0.5px solid var(--glass-border);
+      background: var(--glass-bg);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      backdrop-filter: blur(40px) saturate(180%);
+      cursor: pointer;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform var(--duration-fast) var(--ease-spring),
+                  box-shadow var(--duration-normal) var(--ease-smooth);
+      /* Entry animation */
+      opacity: 0;
+      animation: card-enter 0.7s var(--ease-spring) forwards;
+    }
+
+    .mode-card:nth-child(2) { animation-delay: 0.08s; }
+
+    @keyframes card-enter {
+      from { opacity: 0; transform: translateY(16px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .mode-card:active {
+      transform: scale(0.975);
+    }
+
+    /* Accent glow behind card */
+    .mode-card::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      padding: 1px;
+      opacity: 0;
+      transition: opacity var(--duration-normal) ease;
+      pointer-events: none;
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+
+    .mode-card--ugreen::before {
+      background: linear-gradient(135deg, var(--ugreen-primary), transparent 60%);
+    }
+
+    .mode-card--airpods::before {
+      background: linear-gradient(135deg, var(--airpods-primary), transparent 60%);
+    }
+
+    .mode-card.is-active::before {
+      opacity: 1;
+    }
+
+    .mode-card.is-active {
+      box-shadow: 0 0 0 1px var(--glass-border);
+    }
+
+    .mode-card--ugreen.is-active {
+      box-shadow: 0 4px 24px var(--ugreen-glow), 0 0 0 1px rgba(48, 209, 88, 0.2);
+    }
+
+    .mode-card--airpods.is-active {
+      box-shadow: 0 4px 24px var(--airpods-glow), 0 0 0 1px rgba(10, 132, 255, 0.2);
+    }
+
+    /* Accent line at the top */
+    .mode-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 24px;
+      right: 24px;
+      height: 0.5px;
+      background: var(--glass-highlight);
+      border-radius: 0 0 1px 1px;
+    }
+
+    /* Icon container */
+    .mode-card__icon {
+      width: 56px;
+      height: 56px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+      position: relative;
+      transition: transform var(--duration-normal) var(--ease-spring);
+    }
+
+    .mode-card:active .mode-card__icon {
+      transform: scale(0.9);
+    }
+
+    .mode-card--ugreen .mode-card__icon {
+      background: var(--ugreen-surface);
+    }
+
+    .mode-card--airpods .mode-card__icon {
+      background: var(--airpods-surface);
+    }
+
+    /* Text block */
+    .mode-card__text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .mode-card__title {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.38px;
+      line-height: 1.2;
+    }
+
+    .mode-card__desc {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--label-secondary);
+      letter-spacing: -0.15px;
+      margin-top: 2px;
+    }
+
+    /* Chevron */
+    .mode-card__chevron {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      color: var(--label-quaternary);
+      transition: transform var(--duration-fast) ease, color var(--duration-fast) ease;
+    }
+
+    .mode-card:active .mode-card__chevron {
+      transform: translateX(2px);
+      color: var(--label-tertiary);
+    }
+
+    /* ==========================================================================
+       FOOTER
+       ========================================================================== */
+    .footer {
+      padding: 0 0 calc(var(--safe-bottom) + 12px);
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .footer__text {
+      font-size: 12px;
+      color: var(--label-secondary);
+      letter-spacing: -0.08px;
+    }
+
+    /* iOS Install Banner */
+    .install-hint {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin: 8px auto 0;
+      padding: 8px 14px;
+      border-radius: 100px;
+      background: var(--system-fill-quaternary);
+      font-size: 12px;
+      color: var(--label-secondary);
+      letter-spacing: -0.08px;
+      max-width: 280px;
+    }
+
+    .install-hint.show { display: flex; }
+
+    .install-hint svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    /* ==========================================================================
+       MODAL SYSTEM (Bottom Sheet — iOS style)
+       ========================================================================== */
+    .sheet-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      visibility: hidden;
+      /* Prevent scroll-through */
+      overscroll-behavior: contain;
+    }
+
+    .sheet-overlay.is-open {
+      visibility: visible;
+    }
+
+    /* Scrim */
+    .sheet-scrim {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0);
+      transition: background var(--duration-normal) ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .sheet-overlay.is-open .sheet-scrim {
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    @media (prefers-color-scheme: light) {
+      .sheet-overlay.is-open .sheet-scrim {
+        background: rgba(0, 0, 0, 0.25);
+      }
+    }
+
+    /* Sheet panel */
+    .sheet {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 500px;
+      max-height: calc(100dvh - 40px - var(--safe-top));
+      background: var(--system-bg-secondary);
+      border-radius: var(--radius-modal) var(--radius-modal) 0 0;
+      overflow: hidden;
+      transform: translateY(100%);
+      transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+      /* iOS-style shadow */
+      box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.15),
+                  0 -1px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    @media (prefers-color-scheme: light) {
+      .sheet {
+        background: #f2f2f7;
+      }
+    }
+
+    .sheet-overlay.is-open .sheet {
+      transform: translateY(0);
+    }
+
+    /* Sheet scroll content */
+    .sheet__scroll {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      max-height: calc(100dvh - 40px - var(--safe-top));
+      padding: 0 20px calc(var(--safe-bottom) + 24px);
+    }
+
+    /* Grab handle */
+    .sheet__handle {
+      width: 36px;
+      height: 5px;
+      border-radius: 3px;
+      background: var(--system-fill-secondary);
+      margin: 8px auto 0;
+      flex-shrink: 0;
+    }
+
+    /* Sheet header */
+    .sheet__header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 0 0;
+    }
+
+    .sheet__icon {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+
+    .sheet__icon--ugreen { background: var(--ugreen-surface); }
+    .sheet__icon--airpods { background: var(--airpods-surface); }
+
+    .sheet__title-group {
+      flex: 1;
+    }
+
+    .sheet__title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.35px;
+      line-height: 1.18;
+    }
+
+    .sheet__badge {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 2px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+
+    .sheet__badge--ugreen {
+      background: rgba(48, 209, 88, 0.15);
+      color: var(--ugreen-primary);
+    }
+
+    .sheet__badge--airpods {
+      background: rgba(10, 132, 255, 0.15);
+      color: var(--airpods-primary);
+    }
+
+    /* ==========================================================================
+       CHECKLIST (iOS grouped table style)
+       ========================================================================== */
+    .section-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--label-secondary);
+      text-transform: uppercase;
+      letter-spacing: -0.08px;
+      padding: 20px 0 8px;
+    }
+
+    .checklist {
+      list-style: none;
+      background: var(--system-bg-grouped-secondary);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .checklist { background: #ffffff; }
+    }
+
+    .checklist__item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+      min-height: 44px;
+      font-size: 16px;
+      letter-spacing: -0.32px;
+      position: relative;
+    }
+
+    /* iOS-style inset separator */
+    .checklist__item + .checklist__item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 52px;
+      right: 0;
+      height: 0.33px;
+      background: var(--separator);
+    }
+
+    .checklist__check {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #fff;
+      /* Entry animation */
+      opacity: 0;
+      transform: scale(0);
+      animation: check-pop 0.35s var(--ease-bounce) forwards;
+    }
+
+    .checklist__item:nth-child(1) .checklist__check { animation-delay: 0.15s; }
+    .checklist__item:nth-child(2) .checklist__check { animation-delay: 0.22s; }
+    .checklist__item:nth-child(3) .checklist__check { animation-delay: 0.29s; }
+    .checklist__item:nth-child(4) .checklist__check { animation-delay: 0.36s; }
+
+    @keyframes check-pop {
+      from { opacity: 0; transform: scale(0) rotate(-20deg); }
+      to { opacity: 1; transform: scale(1) rotate(0); }
+    }
+
+    .checklist__check--ugreen { background: var(--ugreen-primary); }
+    .checklist__check--airpods { background: var(--airpods-primary); }
+
+    .checklist__check svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .checklist__label {
+      flex: 1;
+      line-height: 1.3;
+    }
+
+    .checklist__label strong {
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       ACTION BUTTONS
+       ========================================================================== */
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-top: 20px;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 50px;
+      padding: 14px 20px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: inherit;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.41px;
+      text-decoration: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform var(--duration-fast) ease,
+                  opacity var(--duration-fast) ease,
+                  filter var(--duration-fast) ease;
+    }
+
+    .btn:active {
+      transform: scale(0.975);
+      opacity: 0.82;
+    }
+
+    .btn--filled-ugreen {
+      background: var(--ugreen-primary);
+      color: #000000;
+    }
+
+    .btn--filled-airpods {
+      background: var(--airpods-primary);
+      color: #ffffff;
+    }
+
+    .btn--gray {
+      background: var(--system-fill);
+      color: var(--label-primary);
+    }
+
+    .btn--ghost {
+      background: transparent;
+      color: var(--label-secondary);
+      font-weight: 400;
+      min-height: 44px;
+      font-size: 16px;
+    }
+
+    .btn__icon {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    /* Paired row */
+    .actions__row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .actions__row .btn {
+      flex: 1;
+      font-size: 15px;
+      min-height: 46px;
+      padding: 12px 14px;
+    }
+
+    /* ==========================================================================
+       TOAST NOTIFICATION
+       ========================================================================== */
+    .toast {
+      position: fixed;
+      top: calc(var(--safe-top) + 12px);
+      left: 50%;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 20px;
+      border-radius: 100px;
+      background: var(--system-bg-tertiary);
+      -webkit-backdrop-filter: blur(24px) saturate(200%);
+      backdrop-filter: blur(24px) saturate(200%);
+      border: 0.5px solid var(--glass-border);
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.24px;
+      white-space: nowrap;
+      pointer-events: none;
+      /* Hidden state */
+      transform: translateX(-50%) translateY(calc(-100% - 20px));
+      opacity: 0;
+      transition: transform 0.5s var(--ease-bounce), opacity 0.3s ease;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .toast {
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+      }
+    }
+
+    .toast.is-visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .toast__icon {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    /* ==========================================================================
+       REDUCED MOTION
+       ========================================================================== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Ambient background mesh -->
+  <div class="bg-mesh" id="bgMesh"></div>
+
+  <div class="app">
+    <!-- HEADER -->
+    <header class="header">
+      <h1 class="header__title">Audio Modes</h1>
+      <p class="header__subtitle">Alterne entre perfis de áudio</p>
+    </header>
+
+    <!-- STATUS PILL -->
+    <div class="status-pill" id="statusPill">
+      <span class="status-pill__dot" id="statusDot"></span>
+      <span>Ativo:</span>
+      <span class="status-pill__label" id="statusLabel">—</span>
+    </div>
+
+    <!-- MODE CARDS -->
+    <main class="main">
+      <!-- UGREEN Card -->
+      <div class="mode-card mode-card--ugreen" id="cardUgreen" role="button" tabindex="0" aria-label="Abrir configurações do Modo UGREEN Premium">
+        <div class="mode-card__icon">🎧</div>
+        <div class="mode-card__text">
+          <div class="mode-card__title">Modo UGREEN</div>
+          <div class="mode-card__desc">Premium · EQ Late Night</div>
+        </div>
+        <svg class="mode-card__chevron" viewBox="0 0 20 20" fill="none">
+          <path d="M7.5 4.5L13 10L7.5 15.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- AirPods Card -->
+      <div class="mode-card mode-card--airpods" id="cardAirpods" role="button" tabindex="0" aria-label="Abrir configurações do Modo AirPods Padrão">
+        <div class="mode-card__icon">
+          <!-- AirPods inline SVG icon -->
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="13" stroke="var(--airpods-primary)" stroke-width="1.5" opacity="0.3"/>
+            <circle cx="14" cy="14" r="6" fill="var(--airpods-primary)" opacity="0.8"/>
+            <circle cx="14" cy="14" r="2.5" fill="var(--system-bg-secondary)"/>
+          </svg>
+        </div>
+        <div class="mode-card__text">
+          <div class="mode-card__title">Modo AirPods</div>
+          <div class="mode-card__desc">Padrão Apple · EQ Off</div>
+        </div>
+        <svg class="mode-card__chevron" viewBox="0 0 20 20" fill="none">
+          <path d="M7.5 4.5L13 10L7.5 15.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <p class="footer__text">Toque em um modo para ver instruções</p>
+      <div class="install-hint" id="installHint">
+        <svg viewBox="0 0 20 20" fill="none">
+          <rect x="3" y="7" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M10 3v8M7 6l3-3 3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Adicione à Tela de Início para melhor experiência</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ========================================================================
+       UGREEN BOTTOM SHEET
+       ======================================================================== -->
+  <div class="sheet-overlay" id="sheetUgreen">
+    <div class="sheet-scrim" data-close="ugreen"></div>
+    <div class="sheet">
+      <div class="sheet__handle"></div>
+      <div class="sheet__scroll">
+        <header class="sheet__header">
+          <div class="sheet__icon sheet__icon--ugreen">🎧</div>
+          <div class="sheet__title-group">
+            <h2 class="sheet__title">Modo UGREEN</h2>
+            <span class="sheet__badge sheet__badge--ugreen">Premium</span>
+          </div>
+        </header>
+
+        <p class="section-label">Configurações</p>
+        <ul class="checklist">
+          <li class="checklist__item">
+            <span class="checklist__check checklist__check--ugreen">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5L5 9L9.5 3.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="checklist__label"><strong>EQ:</strong> Late Night</span>
+          </li>
+          <li class="checklist__item">
+            <span class="checklist__check checklist__check--ugreen">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5L5 9L9.5 3.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="checklist__label"><strong>Ajustes de Fone:</strong> Equilibrado / Moderado</span>
+          </li>
+          <li class="checklist__item">
+            <span class="checklist__check checklist__check--ugreen">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5L5 9L9.5 3.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="checklist__label"><strong>App UGREEN:</strong> Perfil Balanced</span>
+          </li>
+          <li class="checklist__item">
+            <span class="checklist__check checklist__check--ugreen">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5L5 9L9.5 3.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="checklist__label"><strong>ANC:</strong> Desligado</span>
+          </li>
+        </ul>
+
+        <p class="section-label">Ações rápidas</p>
+        <div class="actions">
+          <div class="actions__row">
+            <a href="App-Prefs:root=MUSIC" class="btn btn--gray" target="_blank" rel="noopener">
+              <span class="btn__icon">🎵</span> Música
+            </a>
+            <a href="App-Prefs:root=ACCESSIBILITY&path=AUDIO_VISUAL" class="btn btn--gray" target="_blank" rel="noopener">
+              <span class="btn__icon">👂</span> Áudio/Visual
+            </a>
+          </div>
+          <button class="btn btn--filled-ugreen" id="activateUgreen">
+            Ativar Modo UGREEN
+          </button>
+          <button class="btn btn--ghost" data-close="ugreen">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       AIRPODS BOTTOM SHEET
+       ======================================================================== -->
+  <div class="sheet-overlay" id="sheetAirpods">
+    <div class="sheet-scrim" data-close="airpods"></div>
+    <div class="sheet">
+      <div class="sheet__handle"></div>
+      <div class="sheet__scroll">
+        <header class="sheet__header">
+          <div class="sheet__icon sheet__icon--airpods">
+            <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+              <circle cx="14" cy="14" r="13" stroke="var(--airpods-primary)" stroke-width="1.5" opacity="0.3"/>
+              <circle cx="14" cy="14" r="6" fill="var(--airpods-primary)" opacity="0.8"/>
+              <circle cx="14" cy="14" r="2.5" fill="var(--system-bg-secondary)"/>
+            </svg>
+          </div>
+          <div class="sheet__title-group">
+            <h2 class="sheet__title">Modo AirPods</h2>
+            <span class="sheet__badge sheet__badge--airpods">Padrão</span>
+          </div>
+        </header>
+
+        <p class="section-label">Configurações</p>
+        <ul class="checklist">
+          <li class="checklist__item">
+            <span class="checklist__check checklist__check--airpods">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5L5 9L9.5 3.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="checklist__label"><strong>EQ:</strong> Desligado (Off)</span>
+          </li>
+          <li class="checklist__item">
+            <span class="checklist__check checklist__check--airpods">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5L5 9L9.5 3.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="checklist__label"><strong>Ajustes de Fone:</strong> Desativado</span>
+          </li>
+          <li class="checklist__item">
+            <span class="checklist__check checklist__check--airpods">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5L5 9L9.5 3.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="checklist__label"><strong>Som:</strong> Padrão Apple</span>
+          </li>
+        </ul>
+
+        <p class="section-label">Ações rápidas</p>
+        <div class="actions">
+          <div class="actions__row">
+            <a href="App-Prefs:root=MUSIC" class="btn btn--gray" target="_blank" rel="noopener">
+              <span class="btn__icon">🎵</span> Música
+            </a>
+            <a href="App-Prefs:root=ACCESSIBILITY&path=AUDIO_VISUAL" class="btn btn--gray" target="_blank" rel="noopener">
+              <span class="btn__icon">👂</span> Áudio/Visual
+            </a>
+          </div>
+          <button class="btn btn--filled-airpods" id="activateAirpods">
+            Ativar Modo AirPods
+          </button>
+          <button class="btn btn--ghost" data-close="airpods">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast" role="alert">
+    <span class="toast__icon" id="toastIcon">✅</span>
+    <span id="toastLabel">Modo ativado</span>
+  </div>
+
+  <!-- ========================================================================
+       JAVASCRIPT
+       ======================================================================== -->
+  <script>
+  (function() {
+    'use strict';
+
+    /* ---- Elements ---- */
+    const bgMesh       = document.getElementById('bgMesh');
+    const statusPill    = document.getElementById('statusPill');
+    const statusDot     = document.getElementById('statusDot');
+    const statusLabel   = document.getElementById('statusLabel');
+    const cardUgreen    = document.getElementById('cardUgreen');
+    const cardAirpods   = document.getElementById('cardAirpods');
+    const sheetUgreen   = document.getElementById('sheetUgreen');
+    const sheetAirpods  = document.getElementById('sheetAirpods');
+    const activateUgBtn = document.getElementById('activateUgreen');
+    const activateApBtn = document.getElementById('activateAirpods');
+    const toast         = document.getElementById('toast');
+    const toastIcon     = document.getElementById('toastIcon');
+    const toastLabel    = document.getElementById('toastLabel');
+    const installHint   = document.getElementById('installHint');
+
+    /* ---- State ---- */
+    let activeMode = null;
+    let toastTimer = null;
+
+    // Persistence helpers — use in-memory for sandbox, localStorage on real device
+    function persist(mode) {
+      try { window.__audioMode = mode; } catch(e) {}
+    }
+    function restore() {
+      try { return window.__audioMode || null; } catch(e) { return null; }
+    }
+
+    /* ---- Init ---- */
+    activeMode = restore();
+    if (activeMode) updateStatus(activeMode);
+
+    // Show iOS install hint if not standalone
+    if (isIOS() && !isStandalone()) {
+      installHint.classList.add('show');
+    }
+
+    /* ---- Helpers ---- */
+    function isIOS() {
+      return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    }
+
+    function isStandalone() {
+      return window.navigator.standalone === true ||
+             window.matchMedia('(display-mode: standalone)').matches;
+    }
+
+    function haptic() {
+      if (navigator.vibrate) navigator.vibrate(8);
+    }
+
+    /* ---- Open / Close Sheet ---- */
+    function openSheet(mode) {
+      haptic();
+      const sheet = mode === 'ugreen' ? sheetUgreen : sheetAirpods;
+      sheet.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeSheet(mode) {
+      const sheet = mode === 'ugreen' ? sheetUgreen : sheetAirpods;
+      sheet.classList.remove('is-open');
+      document.body.style.overflow = '';
+    }
+
+    function closeAllSheets() {
+      closeSheet('ugreen');
+      closeSheet('airpods');
+    }
+
+    /* ---- Show Toast ---- */
+    function showToast(text, icon) {
+      toastLabel.textContent = text;
+      toastIcon.textContent = icon || '✅';
+      toast.classList.add('is-visible');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 2400);
+    }
+
+    /* ---- Update Status ---- */
+    function updateStatus(mode) {
+      if (mode === 'ugreen') {
+        statusLabel.textContent = 'UGREEN Premium';
+        statusDot.className = 'status-pill__dot';
+        bgMesh.className = 'bg-mesh mode-ugreen';
+        cardUgreen.classList.add('is-active');
+        cardAirpods.classList.remove('is-active');
+      } else {
+        statusLabel.textContent = 'AirPods Padrão';
+        statusDot.className = 'status-pill__dot status-pill__dot--airpods';
+        bgMesh.className = 'bg-mesh mode-airpods';
+        cardAirpods.classList.add('is-active');
+        cardUgreen.classList.remove('is-active');
+      }
+      statusPill.classList.add('visible');
+    }
+
+    /* ---- Activate Mode ---- */
+    function activate(mode) {
+      haptic();
+      activeMode = mode;
+      persist(mode);
+      updateStatus(mode);
+      closeAllSheets();
+      if (mode === 'ugreen') {
+        showToast('Modo UGREEN ativado', '🎧');
+      } else {
+        showToast('Modo AirPods ativado', '🎵');
+      }
+    }
+
+    /* ---- Event Listeners ---- */
+
+    // Cards
+    cardUgreen.addEventListener('click', () => openSheet('ugreen'));
+    cardAirpods.addEventListener('click', () => openSheet('airpods'));
+
+    // Keyboard accessibility
+    cardUgreen.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSheet('ugreen'); }});
+    cardAirpods.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSheet('airpods'); }});
+
+    // Activate buttons
+    activateUgBtn.addEventListener('click', () => activate('ugreen'));
+    activateApBtn.addEventListener('click', () => activate('airpods'));
+
+    // Close buttons & scrim
+    document.querySelectorAll('[data-close="ugreen"]').forEach(el =>
+      el.addEventListener('click', () => closeSheet('ugreen'))
+    );
+    document.querySelectorAll('[data-close="airpods"]').forEach(el =>
+      el.addEventListener('click', () => closeSheet('airpods'))
+    );
+
+    // Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAllSheets();
+    });
+
+    /* ---- Service Worker ---- */
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+
+  })();
+  </script>
+</body>
+</html>
